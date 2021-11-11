@@ -44,6 +44,37 @@ WHERE carreteras.id=subquery.id;
 UPDATE carreteras set distancia=st_length(geom);
 
 
+CREATE OR REPLACE FUNCTION public.get_bus_stops(
+
+) 
+RETURNS table(
+    geomJson jsonb 
+)
+LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+    RETURN QUERY SELECT jsonb_build_object( 
+        'type',
+        'FeatureCollection',
+        'features',
+        jsonb_agg(feature)
+    )FROM (
+    SELECT jsonb_build_object(
+        'type',       'Feature',
+        'id',         id,
+        'geometry',   ST_AsGeoJSON(geom)::jsonb,
+        'properties', to_jsonb(row) - 'id' - 'geom'
+    ) AS feature
+    FROM (
+        SELECT
+            P.id,
+            st_transform(geom,4326)as geom 
+        FROM
+            public.paradas P
+    ) row) features;
+END;
+$BODY$;
+
 -- consigue las paradas por las que debe pasar
 CREATE OR REPLACE FUNCTION public.get_bus_stop(
     _source int,
@@ -82,13 +113,7 @@ CREATE OR REPLACE FUNCTION public.get_bus_routes(
     _target int
 ) 
 RETURNS TABLE(
-    id int, 
-    geom geometry,
-    seq int,
-    start_id int,
-    start_geom geometry,
-    end_id int,
-    end_geom geometry
+    geomJson jsonb 
 )
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -105,11 +130,13 @@ declare
 begin
     _is_start_point = true;
     _search_radius = 120;
+    _seq = 0;
 
     -- pardas por las que se deben pasar
     create temp TABLE _temp_paradas ON COMMIT DROP AS -- paradas por las que se deben pasar
         select 
-            * 
+            id,
+            geom
         from 
             get_bus_stop(_source, _target);
 
@@ -126,7 +153,7 @@ begin
         inner join _temp_paradas P ON ST_DWithin(ST_SetSRID(R.geom,5367),P.geom,_search_radius);
 
 
-    FOR _id, _seq, _geom IN SELECT * FROM _temp_paradas
+    FOR _id, _geom IN SELECT * FROM _temp_paradas
     LOOP
         if( _is_start_point ) THEN -- marco las rutas que pasan por la parada inicial
             _is_start_point = false;
@@ -154,7 +181,7 @@ begin
             ELSE --no hay rutas que pasan por la parada y venngan del punto inicial
 
                 _start_id = _id_ant; -- la anterior fue la ultima que venian del punto inicial
-
+                _seq = _seq +1;
                 update _temp_rutas set
                     start_id = _id_ant,
                     seq = _seq
@@ -177,24 +204,38 @@ begin
     
     --UPDATE _temp_rutas TR set geom =  ST_LineMerge( TR.geom) ;
 
-    RETURN QUERY select 
-        R.id, -- id de la ruta
-        R.geom, -- figura de la ruta
-        R.seq, -- sequencia de la ruta 
-        R.start_id, -- id de la parada de inicio
-        S.geom as start_geom, -- figura de la parada de inicio
-        R.end_id, -- id de la parada de llegada
-        E.geom as end_geom -- figura de la parada de llegada
-    from 
-        _temp_rutas R
-    inner join paradas S ON S.id = R.start_id
-    inner join paradas E ON E.id = R.end_id
-    WHERE 
-        R.end_id IN (
-            select R2.start_id from _temp_rutas R2 
-        ) or
-        R.end_id = _target
-    ORDER BY R.seq ASC;
+    RETURN QUERY SELECT jsonb_build_object( 
+        'type',
+        'FeatureCollection',
+        'features',
+        jsonb_agg(feature)
+    )FROM (
+    SELECT jsonb_build_object(
+        'type',       'Feature',
+        'id',         id,
+        'geometry',   ST_AsGeoJSON(geom)::jsonb,
+        'properties', to_jsonb(row) - 'id' - 'geom'
+    ) AS feature
+    FROM (
+        select 
+            R.id, -- id de la ruta
+            R.geom, -- figura de la ruta
+            R.seq, -- sequencia de la ruta 
+            R.start_id, -- id de la parada de inicio
+            S.geom as start_geom, -- figura de la parada de inicio
+            R.end_id, -- id de la parada de llegada
+            E.geom as end_geom -- figura de la parada de llegada
+        from 
+            _temp_rutas R
+        inner join paradas S ON S.id = R.start_id
+        inner join paradas E ON E.id = R.end_id
+        WHERE 
+            R.end_id IN (
+                select R2.start_id from _temp_rutas R2 
+            ) or
+            R.end_id = _target
+    ) row) features;
+
 end
 $BODY$;
 
