@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,20 +12,38 @@
     <link rel="stylesheet" href="./assets/css/openLayer.css" type="text/css">
     <link rel="stylesheet" href="./assets/css/index.css">
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
 
     <!-- Codigo JavaScript de la pagina -->
     <script src="./assets/js/openLayer.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
     <script src="./assets/js/index.js"></script>
-    
 </head>
+
 <body onload="onLoad()">
-    
+    <div class="header-container">
+        <div class="left">Proyecto 2 GIS</div>
+        <div class="middle">
+            <div class="proyect_div">Bus Line View</div>
+            <div class="name_div">
+                <div class="name">Carlos Cordoba</div>
+                <div class="name">Daniel Rojas</div>
+                <div class="name">Leandro Vasquez</div>
+            </div>
+        </div>
+
+        <div class="right">
+            <button class="button_head" onclick="deselect()">Deshacer seleccion</button>
+            <button class="button_head" onclick="calcRoute()">Calcular rutas</button>
+        </div>
+    </div>
     <div class="map-container">
         <div id="map" class="w-100 h-100">
-
         </div>
     </div>
 
 
 </body>
+
 </html>
