@@ -17,14 +17,14 @@ CREATE TABLE carreteras(
     target int
 );
 
-SELECT AddGeometryColumn ('public','carreteras','geom',5367,'LINESTRING',2);
+SELECT AddGeometryColumn ('public','carreteras','geom',4326,'LINESTRING',2);
 
 -- Tabla para las paradas de buses
 CREATE TABLE paradas(
     id serial primary key
 );
 
-SELECT AddGeometryColumn ('public','paradas','geom',5367,'POINT',2);
+SELECT AddGeometryColumn ('public','paradas','geom',4326,'POINT',2);
 
 -- crear los source y los targets de carreteras con respecto a las paradas
 UPDATE carreteras
@@ -144,13 +144,13 @@ begin
     create temp table _temp_rutas ON COMMIT DROP AS -- rutas que pasan por las paradas 
         SELECT
             distinct R.fid as id,
-            ST_SetSRID(R.geom,5367) as geom,
+            R.geom as geom,
             null::int as seq,
             null::int as start_id,
             null::int as end_id
         from
             rutas R
-        inner join _temp_paradas P ON ST_DWithin(ST_SetSRID(R.geom,5367),P.geom,_search_radius);
+        inner join _temp_paradas P ON ST_DWithin(R.geom,P.geom,_search_radius);
 
 
     FOR _id, _geom IN SELECT * FROM _temp_paradas
