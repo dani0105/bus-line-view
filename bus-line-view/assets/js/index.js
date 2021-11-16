@@ -8,6 +8,9 @@ let map = new ol.Map({
     })
 });
 
+var selectInteraction = new ol.interaction.Select();
+
+
 let source = null;
 let target = null;
 
@@ -53,28 +56,27 @@ function onLoad() {
         })
     });
     loadFeatures()
-    map.on('click', function(e) {
-        const ft = paradasLayer.getFeaturesAtCoordinate(e.pixel);
-        console.log(ft);
-        if (!ft) {
+    
+    map.addInteraction(selectInteraction);
+    selectInteraction.on('select', e => {
+        const feature = e.selected[0]; // en feature.W esta el id de la figura
+        
+
+        if(!source){
+            source = feature;
+            feature.setStyle(estilo_selected);
+            console.log("Source")
             return;
         }
-        if (source === null) {
-            source = ft;
-            ft.setStyle(estilo_selected);
-        } else if (target === null) {
-            target = ft;
-            ft.setStyle(estilo_selected);
-        } else {
-            if (source = ft) {
-                source = null;
-                ft.setStyle(estilo_paradas);
-            } else if (target = ft) {
-                target = null;
-                ft.setStyle(estilo_paradas);
-            }
+
+        if(!target){
+            console.log("target")
+            target = feature;
+            feature.setStyle(estilo_selected);
+            return;
         }
     })
+
 }
 
 function loadFeatures() {
@@ -96,6 +98,8 @@ function load_Stops() {
             style: estilo_paradas
         });
         map.addLayer(vl);
+        
+       
     })
 }
 
