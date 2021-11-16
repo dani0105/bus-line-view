@@ -11,7 +11,7 @@ let map = new ol.Map({
 let source = null;
 let target = null;
 
-let paradasLayer;
+var selectInteraction = new ol.interaction.Select();
 
 var estilo_source = new ol.style.Style({
     image: new ol.style.Circle({
@@ -70,30 +70,41 @@ function onLoad() {
         })
     });
     loadFeatures()
-    map.on('click', function(e) {
-        var coordsP = map.getCoordinateFromPixel(e.pixel);
-        const ft = map.getClosestFeatureToCoordinate(e.pixel);
-        var coordsF = ft.getGeometry().getCoordinates();
-        console.log("Pixel ", coordsP, "Feature ", coordsF);
-        if (!ft) {
-            return;
-        }
-        if (source === null) {
-            source = ft;
-            ft.setStyle(estilo_source);
-        } else if (target === null) {
-            target = ft;
-            ft.setStyle(estilo_target);
-        } else {
-            if (source === ft) {
-                source = null;
-                ft.setStyle(estilo_paradas);
-            } else if (target === ft) {
-                target = null;
-                ft.setStyle(estilo_paradas);
+    map.addInteraction(selectInteraction);
+    selectInteraction.on('select', e => {
+        var feature = e.selected[0]; // en feature.W esta el id de la figura
+
+        if (feature) {
+            if (!source) {
+                if (feature !== target) {
+                    source = feature;
+                    feature = null;
+                    source.setStyle(estilo_source);
+                    console.log("set source")
+                }
+            } else if (!target) {
+                if (feature !== source) {
+                    target = feature;
+                    feature = null;
+                    target.setStyle(estilo_target);
+                    console.log("set target")
+                }
+            } else {
+                if (feature === source) {
+                    source.setStyle(estilo_paradas);
+                    source = null;
+                    console.log("unset source")
+                } else if (feature === target) {
+                    feature.setStyle(estilo_paradas);
+                    target = null;
+                    console.log("unset target")
+                }
             }
         }
+
+
     })
+
 }
 
 function loadFeatures() {
@@ -107,14 +118,17 @@ function load_Roads() {
 
 function load_Stops() {
     axios.get("http://localhost:8081/bus-stops").then(response => {
-        paradasLayer = new ol.source.Vector({
+        console.log(response.status);
+        vs = new ol.source.Vector({
             features: new ol.format.GeoJSON().readFeatures(response.data.data)
         });
         vl = new ol.layer.Vector({
-            source: paradasLayer,
+            source: vs,
             style: estilo_paradas
         });
         map.addLayer(vl);
+
+
     })
 }
 
@@ -126,6 +140,22 @@ function deselect() {
 }
 
 function calcRoute() {
-    const source = selected[0];
-    const target = selected[1];
+    axios({
+        method: 'get',
+        url: 'http://localhost:8081/bus-lines',
+        params: {
+            start: source.getId(),
+            end: target.getId()
+        }
+    }).then(response => {
+        console.log(response.status);
+        vs = new ol.source.Vector({
+            features: new ol.format.GeoJSON().readFeatures(response.data.data)
+        });
+        vl = new ol.layer.Vector({
+            source: vs,
+            style: estilo_calles
+        });
+        map.addLayer(vl);
+    })
 }
