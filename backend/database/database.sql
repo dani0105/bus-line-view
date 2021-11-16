@@ -129,7 +129,7 @@ declare
 
 begin
     _is_start_point = true;
-    _search_radius = 120;
+    _search_radius = 0.002;
     _seq = 0;
 
     -- pardas por las que se deben pasar
