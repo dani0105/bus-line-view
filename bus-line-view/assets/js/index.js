@@ -10,6 +10,8 @@ let map = new ol.Map({
 
 let source = null;
 let target = null;
+let layerParadas;
+let layerRutas;
 
 var selectInteraction = new ol.interaction.Select();
 
@@ -48,7 +50,7 @@ var estilo_paradas = new ol.style.Style({
 
 var estilo_calles = new ol.style.Style({
     stroke: new ol.style.Stroke({
-        color: [212, 176, 135],
+        color: [204, 204, 255],
         width: 10,
     }),
 });
@@ -122,11 +124,11 @@ function load_Stops() {
         vs = new ol.source.Vector({
             features: new ol.format.GeoJSON().readFeatures(response.data.data)
         });
-        vl = new ol.layer.Vector({
+        layerParadas = new ol.layer.Vector({
             source: vs,
             style: estilo_paradas
         });
-        map.addLayer(vl);
+        map.addLayer(layerParadas);
 
 
     })
@@ -148,14 +150,18 @@ function calcRoute() {
             end: target.getId()
         }
     }).then(response => {
+        map.removeLayer(layerParadas);
+        map.removeLayer(layerRutas);
         console.log(response.status);
         vs = new ol.source.Vector({
             features: new ol.format.GeoJSON().readFeatures(response.data.data)
         });
-        vl = new ol.layer.Vector({
+        layerRutas = new ol.layer.Vector({
             source: vs,
             style: estilo_calles
         });
-        map.addLayer(vl);
+
+        map.addLayer(layerRutas);
+        map.addLayer(layerParadas);
     })
 }
