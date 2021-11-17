@@ -1,3 +1,4 @@
+//Inisializacion del mapa
 let map = new ol.Map({
     target: 'map',
     layers: [],
@@ -8,15 +9,21 @@ let map = new ol.Map({
     })
 });
 
+//Inisializacion de la parada de salida y llegada
 let source = null;
 let target = null;
+
+//Inicializacion de las capas de paradas y rutas
 let layerParadas;
 let layerRutas;
 
-var startText,endText,searchButton,linesList;
+//Variables para uso de interfaz
+var startText, endText, searchButton, linesList;
 
+//Controlador de seleccion en el mapa
 var selectInteraction = new ol.interaction.Select();
 
+//Estilo de la parada seleccionada como inicio
 var estilo_source = new ol.style.Style({
     image: new ol.style.Circle({
         radius: 7.5,
@@ -28,6 +35,7 @@ var estilo_source = new ol.style.Style({
     })
 });
 
+//Estilo de la parada seleccionada como llegada
 var estilo_target = new ol.style.Style({
     image: new ol.style.Circle({
         radius: 7.5,
@@ -39,6 +47,7 @@ var estilo_target = new ol.style.Style({
     })
 });
 
+//Estilo para mostrar las paradas
 var estilo_paradas = new ol.style.Style({
     image: new ol.style.Circle({
         radius: 7.5,
@@ -50,6 +59,7 @@ var estilo_paradas = new ol.style.Style({
     })
 })
 
+//Estilo para mostrar las rutas
 var estilo_calles = new ol.style.Style({
     stroke: new ol.style.Stroke({
         color: [204, 204, 255],
@@ -57,6 +67,7 @@ var estilo_calles = new ol.style.Style({
     }),
 });
 
+//Funcion que se ejecuta al cargar la pagina, inicializa el mapa y la interfaz, y carga las paradas
 function onLoad() {
     var mousePositionControl = new ol.control.MousePosition({
         coordinateFormat: ol.coordinate.createStringXY(8),
@@ -73,10 +84,10 @@ function onLoad() {
             zoom: 8.25
         })
     });
-    loadFeatures()
+    load_Stops()
 
     startText = document.getElementById('start-point');
-    endText =  document.getElementById('end-point');
+    endText = document.getElementById('end-point');
     searchButton = document.getElementById('search-button');
     linesList = document.getElementById("lines");
     searchButton.disabled = true
@@ -84,15 +95,15 @@ function onLoad() {
     selectInteraction.on('select', e => {
         var feature = e.selected[0]; // en feature.W esta el id de la figura
         if (feature) {
-            if(!source){
+            if (!source) {
                 source = feature;
                 startText.innerText = `${feature.W}`
-            
-            }else if (!target){
+
+            } else if (!target) {
                 target = feature;
                 endText.innerText = `${feature.W}`
                 searchButton.disabled = false;
-            }else{
+            } else {
                 map.removeLayer(layerRutas);
                 searchButton.disabled = true;
                 linesList.innerHTML = '';
@@ -108,25 +119,18 @@ function onLoad() {
     })
 }
 
-function highlightFeature(){
-    if(source){
+//Funcion para estilizar las paradas seleccionadas
+function highlightFeature() {
+    if (source) {
         source.setStyle(estilo_source);
     }
 
-    if(target){
+    if (target) {
         target.setStyle(estilo_target);
     }
 }
 
-function loadFeatures() {
-    load_Roads();
-    load_Stops();
-}
-
-function load_Roads() {
-    //
-}
-
+//Funcion que carga las paradas de la data base y las agrega al mapa
 function load_Stops() {
     axios.get("http://localhost:8081/bus-stops").then(response => {
         console.log(response.status);
@@ -143,6 +147,7 @@ function load_Stops() {
     })
 }
 
+//Elimina la seleccion de paradas
 function deselect() {
     source.setStyle(estilo_paradas);
     target.setStyle(estilo_paradas);
@@ -150,6 +155,7 @@ function deselect() {
     target = null;
 }
 
+//Envia las paradas seleccionadas al backend para que este calcule las ruta, agregas estas rutas al mapa
 function calcRoute() {
     axios({
         method: 'get',
@@ -160,7 +166,7 @@ function calcRoute() {
         }
     }).then(response => {
         map.removeLayer(layerParadas);
-        
+
         console.log(response.status);
         vs = new ol.source.Vector({
             features: new ol.format.GeoJSON().readFeatures(response.data.data)
@@ -175,9 +181,10 @@ function calcRoute() {
     })
 }
 
-function fillList(routes){
-    
-    for(let i = 0; i < routes.length; i++){
+//LLena la lista de informacion de rutas
+function fillList(routes) {
+
+    for (let i = 0; i < routes.length; i++) {
         const element = routes[i];
         var tag = document.createElement("li");
         tag.className = 'line-item'
