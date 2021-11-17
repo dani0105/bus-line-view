@@ -130,7 +130,7 @@ declare
 begin
     _is_start_point = true;
     _search_radius = 0.002;
-    _seq = 0;
+    _seq = 1;
 
     -- pardas por las que se deben pasar
     create temp TABLE _temp_paradas ON COMMIT DROP AS -- paradas por las que se deben pasar
@@ -147,7 +147,8 @@ begin
             R.geom as geom,
             null::int as seq,
             null::int as start_id,
-            null::int as end_id
+            null::int as end_id,
+            R.rutactp2019
         from
             rutas R
         inner join _temp_paradas P ON ST_DWithin(R.geom,P.geom,_search_radius);
@@ -224,7 +225,8 @@ begin
             R.start_id, -- id de la parada de inicio
             S.geom as start_geom, -- figura de la parada de inicio
             R.end_id, -- id de la parada de llegada
-            E.geom as end_geom -- figura de la parada de llegada
+            E.geom as end_geom, -- figura de la parada de llegada
+            R.rutactp2019
         from 
             _temp_rutas R
         inner join paradas S ON S.id = R.start_id
@@ -234,6 +236,7 @@ begin
                 select R2.start_id from _temp_rutas R2 
             ) or
             R.end_id = _target
+        order by R.seq ASC
     ) row) features;
 
 end

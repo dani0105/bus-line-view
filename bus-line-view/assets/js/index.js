@@ -13,6 +13,8 @@ let target = null;
 let layerParadas;
 let layerRutas;
 
+var startText,endText,searchButton,linesList;
+
 var selectInteraction = new ol.interaction.Select();
 
 var estilo_source = new ol.style.Style({
@@ -72,41 +74,48 @@ function onLoad() {
         })
     });
     loadFeatures()
+
+    startText = document.getElementById('start-point');
+    endText =  document.getElementById('end-point');
+    searchButton = document.getElementById('search-button');
+    linesList = document.getElementById("lines");
+    searchButton.disabled = true
     map.addInteraction(selectInteraction);
     selectInteraction.on('select', e => {
         var feature = e.selected[0]; // en feature.W esta el id de la figura
-
         if (feature) {
-            if (!source) {
-                if (feature !== target) {
-                    source = feature;
-                    feature = null;
-                    source.setStyle(estilo_source);
-                    console.log("set source")
-                }
-            } else if (!target) {
-                if (feature !== source) {
-                    target = feature;
-                    feature = null;
-                    target.setStyle(estilo_target);
-                    console.log("set target")
-                }
-            } else {
-                if (feature === source) {
-                    source.setStyle(estilo_paradas);
-                    source = null;
-                    console.log("unset source")
-                } else if (feature === target) {
-                    feature.setStyle(estilo_paradas);
-                    target = null;
-                    console.log("unset target")
-                }
+            if(!source){
+                source = feature;
+                startText.innerText = `${feature.W}`
+            
+            }else if (!target){
+                target = feature;
+                endText.innerText = `${feature.W}`
+                searchButton.disabled = false;
+            }else{
+                map.removeLayer(layerRutas);
+                searchButton.disabled = true;
+                linesList.innerHTML = '';
+                target.setStyle(estilo_paradas);
+                source.setStyle(estilo_paradas);
+                source = feature;
+                startText.innerText = `${feature.W}`
+                endText.innerText = 'Seleccionar'
+                target = null;
             }
         }
-
-
+        highlightFeature()
     })
+}
 
+function highlightFeature(){
+    if(source){
+        source.setStyle(estilo_source);
+    }
+
+    if(target){
+        target.setStyle(estilo_target);
+    }
 }
 
 function loadFeatures() {
@@ -151,7 +160,7 @@ function calcRoute() {
         }
     }).then(response => {
         map.removeLayer(layerParadas);
-        map.removeLayer(layerRutas);
+        
         console.log(response.status);
         vs = new ol.source.Vector({
             features: new ol.format.GeoJSON().readFeatures(response.data.data)
@@ -160,8 +169,20 @@ function calcRoute() {
             source: vs,
             style: estilo_calles
         });
-
         map.addLayer(layerRutas);
         map.addLayer(layerParadas);
+        fillList(response.data.data.features)
     })
+}
+
+function fillList(routes){
+    
+    for(let i = 0; i < routes.length; i++){
+        const element = routes[i];
+        var tag = document.createElement("li");
+        tag.className = 'line-item'
+        var text = document.createTextNode(`(${element.properties.seq}) ${element.id} - ${element.properties.rutactp2019}`);
+        tag.appendChild(text);
+        linesList.appendChild(tag);
+    }
 }

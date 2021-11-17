@@ -21,28 +21,45 @@
 </head>
 
 <body onload="onLoad()">
-    <div class="header-container">
-        <div class="left">Proyecto 2 GIS</div>
-        <div class="middle">
-            <div class="proyect_div">Bus Line View</div>
-            <div class="name_div">
-                <div class="name">Carlos Cordoba</div>
-                <div class="name">Daniel Rojas</div>
-                <div class="name">Leandro Vasquez</div>
-            </div>
-        </div>
-
-        <div class="right">
-            <button class="button_head" onclick="deselect()">Deshacer seleccion</button>
-            <button class="button_head" onclick="calcRoute()">Calcular rutas</button>
-        </div>
-    </div>
     <div class="map-container">
         <div id="map" class="w-100 h-100">
         </div>
     </div>
-
-
+    <div class="stops rounded-2 bg-white shadow">
+        <div class="container-fluid p-3">
+            <div class="row"> 
+                <div class="col-6"> 
+                    <label> <strong>Inicio:</strong> </label>
+                    <span id="start-point">Seleccionar</span>
+                </div> 
+                <div class="col-6"> 
+                    <label> <strong>Fin:</strong>  </label>
+                    <span id="end-point">Seleccionar</span>
+                </div> 
+            </div> 
+            <div class="row mt-2"> 
+                <div class="col-12"> 
+                    <button id="search-button" onclick="calcRoute()" class="btn btn-success w-100">Buscar</button>
+                </div> 
+            </div> 
+        </div>
+    </div>
+    <div class="lines rounded-2 bg-white shadow">
+        <div class="container-fluid p-3">
+            <div class="row"> 
+                <div class="col-12"> 
+                    <h3>Lista de Rutas</h3>
+                </div> 
+            </div> 
+            <div class="row"> 
+                <div class="col-12"> 
+                    <ul id="lines" class="list-unstyled">
+                        
+                    </ul>
+                </div> 
+            </div> 
+        </div>
+    </div>
 </body>
 
 </html>

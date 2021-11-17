@@ -1,63 +1,32 @@
 .map-container {
     width: 100vw;
-    height: 90vh;
+    height: 100vh;
 }
 
 .map {
-    height: 90%;
+    height: 100%;
     width: 100%;
 }
 
-.header-container {
-    background-color: #d8d8d8;
-    width: 100wh;
-    height: 10vh;
-    display: flex;
-    justify-content: space-around;
+.stops{
+    position: absolute;
+    bottom: 5vh;
+    width: 400px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.left {
-    font-size: xxx-large;
-    height: 100%;
-    width: 25%;
-    float: left;
+.lines{
+    position: absolute;
+    top: 100px;
+    width: 400px;
+    left: 20px;
+    overflow-y: auto;
+    max-height: calc( 100vh - 200px);
 }
 
-.middle {
-    height: 100%;
-    width: 60%;
-    float: left;
-}
-
-.right {
-    font-size: small;
-    height: 100%;
-    width: 15%;
-    float: left;
-}
-
-.button_head {
-    font-size: small;
-    height: 50%;
-    width: 100%;
-    background-color: #c8bbd8;
-}
-
-.proyect_div {
-    font-size: xx-large;
-    height: 50%;
-    width: 100%;
-}
-
-.name_div {
-    width: 100%;
-    height: 50%;
-    justify-content: space-around;
-}
-
-.name {
-    font-size: large;
-    height: 100%;
-    width: 33%;
-    float: left;
+.line-item{
+    border-bottom: 1px solid black;
+    padding: 3px;
+    margin-top: 5px;
 }
